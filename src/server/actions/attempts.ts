@@ -7,6 +7,7 @@ import {
   AttemptError, checkAnswer, examConfigSchema, saveAnswer, startAssessment, startPractice, submitAttempt, toggleReviewMark, type PracticeMode,
 } from "@/server/services/attempts";
 import type { ActionState } from "@/server/action-types";
+import { redirectOrReturn } from "@/server/action-redirect";
 import { rateLimit } from "@/lib/rate-limit";
 
 function known(e: unknown): string {
@@ -30,7 +31,7 @@ export async function startPracticeAction(_p: ActionState, form: FormData): Prom
   } catch (e) {
     return { error: known(e) };
   }
-  redirect(target);
+  return redirectOrReturn(target);
 }
 
 export async function startAssessmentAction(_p: ActionState, form: FormData): Promise<ActionState> {
@@ -51,7 +52,7 @@ export async function startAssessmentAction(_p: ActionState, form: FormData): Pr
   } catch (e) {
     return { error: known(e) };
   }
-  redirect(target);
+  return redirectOrReturn(target);
 }
 
 type Resp = { selected?: string[]; text?: string; matches?: Record<string, string> };

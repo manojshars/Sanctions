@@ -39,7 +39,7 @@ function Dropdown({ group, pathname }: { group: NavGroup; pathname: string }) {
         <div className="absolute left-0 top-full z-50 pt-2">
           <div className="w-[340px] animate-fade-up rounded-2xl border border-line bg-surface p-2 shadow-lift">
             {group.items!.map((item) => (
-              <Link key={item.href} href={item.href} className="block rounded-xl px-3 py-2.5 hover:bg-surface-2">
+              <Link prefetch={false} key={item.href} href={item.href} className="block rounded-xl px-3 py-2.5 hover:bg-surface-2">
                 <span className="block text-sm font-semibold text-ink">{item.label}</span>
                 {item.description && <span className="block text-xs text-muted">{item.description}</span>}
               </Link>
@@ -95,7 +95,7 @@ function UserMenu({ user }: { user: NonNullable<HeaderUser> }) {
 
 function MenuLink({ href, icon: Icon, children }: { href: string; icon: typeof User; children: React.ReactNode }) {
   return (
-    <Link href={href} className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-ink/90 hover:bg-surface-2">
+    <Link prefetch={false} href={href} className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-ink/90 hover:bg-surface-2">
       <Icon className="h-4 w-4 text-muted" aria-hidden /> {children}
     </Link>
   );
@@ -125,7 +125,7 @@ export function SiteHeader({ user, unread }: { user: HeaderUser; unread: number 
             g.items ? (
               <Dropdown key={g.label} group={g} pathname={pathname} />
             ) : (
-              <Link key={g.href} href={g.href!} aria-current={isActive(pathname, g) ? "page" : undefined}
+              <Link prefetch={false} key={g.href} href={g.href!} aria-current={isActive(pathname, g) ? "page" : undefined}
                 className={cn("rounded-lg px-3 py-2 text-sm font-medium transition hover:text-ink", isActive(pathname, g) ? "text-ink" : "text-muted")}>
                 {g.label}
               </Link>
@@ -133,23 +133,23 @@ export function SiteHeader({ user, unread }: { user: HeaderUser; unread: number 
           )}
         </nav>
         <div className="ml-auto flex items-center gap-1">
-          <Link href="/search" className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-ink" aria-label="Search">
+          <Link prefetch={false} href="/search" className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-ink" aria-label="Search">
             <Search className="h-[18px] w-[18px]" />
           </Link>
           <ThemeToggle />
           {user ? (
             <>
-              <Link href="/notifications" className="relative grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-ink" aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}>
+              <Link prefetch={false} href="/notifications" className="relative grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-ink" aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}>
                 <Bell className="h-[18px] w-[18px]" />
                 {unread > 0 && <span className="absolute right-1.5 top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-gold-400 px-1 text-[10px] font-bold text-navy">{unread > 9 ? "9+" : unread}</span>}
               </Link>
-              <Link href="/my-learning" className={buttonClass("secondary", "sm", "ml-1 hidden md:inline-flex")}>My Learning</Link>
+              <Link prefetch={false} href="/my-learning" className={buttonClass("secondary", "sm", "ml-1 hidden md:inline-flex")}>My Learning</Link>
               <div className="ml-1"><UserMenu user={user} /></div>
             </>
           ) : (
             <div className="hidden items-center gap-2 sm:flex">
-              <Link href="/login" className={buttonClass("ghost", "sm")}>Log in</Link>
-              <Link href="/register" className={buttonClass("primary", "sm")}>Register</Link>
+              <Link prefetch={false} href="/login" className={buttonClass("ghost", "sm")}>Log in</Link>
+              <Link prefetch={false} href="/register" className={buttonClass("primary", "sm")}>Register</Link>
             </div>
           )}
           <button type="button" className="grid h-9 w-9 place-items-center rounded-lg text-ink hover:bg-surface-2 lg:hidden" onClick={() => setMobile(true)} aria-label="Open menu" aria-expanded={mobile}>
@@ -169,30 +169,30 @@ export function SiteHeader({ user, unread }: { user: HeaderUser; unread: number 
               </button>
             </div>
             <nav aria-label="Mobile" className="flex-1 space-y-1 p-4">
-              <Link href="/" className="block rounded-lg px-3 py-2.5 font-medium hover:bg-surface-2">Home</Link>
+              <Link prefetch={false} href="/" className="block rounded-lg px-3 py-2.5 font-medium hover:bg-surface-2">Home</Link>
               {MAIN_NAV.map((g) =>
                 g.items ? (
                   <div key={g.label} className="pt-3">
                     <p className="eyebrow px-3 pb-1">{g.label}</p>
                     {g.items.map((i) => (
-                      <Link key={i.href} href={i.href} className="block rounded-lg px-3 py-2 text-sm hover:bg-surface-2">{i.label}</Link>
+                      <Link prefetch={false} key={i.href} href={i.href} className="block rounded-lg px-3 py-2 text-sm hover:bg-surface-2">{i.label}</Link>
                     ))}
                   </div>
                 ) : (
-                  <Link key={g.href} href={g.href!} className="block rounded-lg px-3 py-2.5 font-medium hover:bg-surface-2">{g.label}</Link>
+                  <Link prefetch={false} key={g.href} href={g.href!} className="block rounded-lg px-3 py-2.5 font-medium hover:bg-surface-2">{g.label}</Link>
                 ),
               )}
             </nav>
             <div className="border-t border-line p-4">
               {user ? (
                 <div className="grid grid-cols-2 gap-2">
-                  <Link href="/dashboard" className={buttonClass("secondary", "md")}>Dashboard</Link>
-                  <Link href="/my-learning" className={buttonClass("primary", "md")}>My Learning</Link>
+                  <Link prefetch={false} href="/dashboard" className={buttonClass("secondary", "md")}>Dashboard</Link>
+                  <Link prefetch={false} href="/my-learning" className={buttonClass("primary", "md")}>My Learning</Link>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
-                  <Link href="/login" className={buttonClass("secondary", "md")}>Log in</Link>
-                  <Link href="/register" className={buttonClass("primary", "md")}>Register</Link>
+                  <Link prefetch={false} href="/login" className={buttonClass("secondary", "md")}>Log in</Link>
+                  <Link prefetch={false} href="/register" className={buttonClass("primary", "md")}>Register</Link>
                 </div>
               )}
             </div>

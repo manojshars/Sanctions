@@ -1,12 +1,12 @@
 "use server";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentUser, requireActionUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { AccessError, NotFoundError } from "@/server/services/courses";
 import { CheckoutError, cancelMembership, confirmDevPayment, loadProduct, quote, startCheckout } from "@/server/services/payments";
 import type { ActionState } from "@/server/action-types";
+import { redirectOrReturn } from "@/server/action-redirect";
 import { formatMoney } from "@/lib/utils";
 
 function fail(e: unknown): ActionState {
@@ -25,7 +25,7 @@ export async function checkoutAction(_p: ActionState, form: FormData): Promise<A
   } catch (e) {
     return fail(e);
   }
-  redirect(url);
+  return redirectOrReturn(url);
 }
 
 export async function previewCouponAction(_p: ActionState, form: FormData): Promise<ActionState> {
@@ -39,14 +39,14 @@ export async function previewCouponAction(_p: ActionState, form: FormData): Prom
   }
 }
 
-export async function confirmDevPaymentAction(paymentId: string): Promise<ActionState> {
+export async function confirmDevPaymentAction(paymentId: string, _prev?: ActionState, _form?: FormData): Promise<ActionState> {
   const user = await requireActionUser();
   try {
     await confirmDevPayment(user.id, paymentId);
   } catch (e) {
     return fail(e);
   }
-  redirect("/settings/billing?success=1");
+  return redirectOrReturn("/settings/billing?success=1");
 }
 
 export async function cancelMembershipAction(membershipId: string): Promise<ActionState> {
@@ -56,7 +56,6 @@ export async function cancelMembershipAction(membershipId: string): Promise<Acti
   } catch (e) {
     return fail(e);
   }
-  revalidatePath("/settings/billing");
   return { ok: true, message: "Your membership will not renew. Access continues until the end of the current period." };
 }
 

@@ -49,6 +49,10 @@
   :focus-visible {
     @apply outline-none ring-2 ring-gold-400 ring-offset-2 ring-offset-canvas;
   }
+  /* Prevent grid "blowout": let grid children shrink below their intrinsic content width. */
+  .grid > * {
+    min-width: 0;
+  }
   ::selection {
     background: rgb(214 182 107 / 0.35);
   }

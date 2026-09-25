@@ -49,8 +49,18 @@ export async function dashboardData(user: Actor) {
     db.lessonProgress.findMany({ where: { userId: user.id, status: "COMPLETED" }, orderBy: { completedAt: "desc" }, take: 10, include: { lesson: { include: { module: { include: { course: { select: { title: true, slug: true } } } } } } } }),
   ]);
   const progress = await courseProgressFor(user.id, enrollments.map((e) => e.courseId));
-  const lastLessonIds = enrollments.map((e) => e.lastLessonId).filter(Boolean) as string[];
-  const lessons = await db.lesson.findMany({ where: { id: { in: lastLessonIds } }, select: { id: true, slug: true, title: true } });
+  // Resume point: the last viewed lesson if unfinished, otherwise the first incomplete lesson in course order.
+  const courseLessons = await db.lesson.findMany({
+    where: { module: { courseId: { in: enrollments.map((e) => e.courseId) } } },
+    select: { id: true, slug: true, title: true, order: true, module: { select: { courseId: true, order: true } } },
+  });
+  const doneIds = new Set((await db.lessonProgress.findMany({ where: { userId: user.id, status: "COMPLETED" }, select: { lessonId: true } })).map((p) => p.lessonId));
+  const resumeFor = (courseId: string, lastLessonId: string | null) => {
+    const ordered = courseLessons.filter((l) => l.module.courseId === courseId).sort((a, b) => a.module.order - b.module.order || a.order - b.order);
+    const last = ordered.find((l) => l.id === lastLessonId);
+    if (last && !doneIds.has(last.id)) return last;
+    return ordered.find((l) => !doneIds.has(l.id)) ?? last ?? null;
+  };
   const videos = await db.videoResource.findMany({ where: { id: { in: savedVideos.map((v) => v.entityId) } } });
   const answered = stats.reduce((s, x) => s + x.total, 0);
   const correct = stats.reduce((s, x) => s + x.correct, 0);
@@ -62,7 +72,7 @@ export async function dashboardData(user: Actor) {
   ].sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, 8);
 
   return {
-    enrollments: enrollments.map((e) => ({ ...e, progress: progress[e.courseId], lastLesson: lessons.find((l) => l.id === e.lastLessonId) ?? null })),
+    enrollments: enrollments.map((e) => ({ ...e, progress: progress[e.courseId], lastLesson: resumeFor(e.courseId, e.lastLessonId) })),
     attempts, stats, certificates, videos, bookmarkedQuestions, notifications, activity,
     answered, accuracy: answered ? Math.round((correct / answered) * 100) : null,
     exams: attempts.filter((a) => a.kind === "MOCK_EXAM" || a.kind === "READINESS").slice(0, 4),

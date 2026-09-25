@@ -7,6 +7,7 @@ import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import { Alert } from "@/components/ui/feedback";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 
 export function NewTicketForm({ categories, defaultCategory }: { categories: readonly string[]; defaultCategory?: string }) {
@@ -60,7 +61,8 @@ export function TicketAdminForm({ number, status, priority, assigneeId, staff }:
 
 export function CloseTicketButton({ number }: { number: number }) {
   const [pending, start] = useTransition();
-  return <Button variant="secondary" size="sm" disabled={pending} onClick={() => start(async () => { await closeTicketAction(number); })}>Close ticket</Button>;
+  const router = useRouter();
+  return <Button variant="secondary" size="sm" disabled={pending} onClick={() => start(async () => { await closeTicketAction(number); router.refresh(); })}>Close ticket</Button>;
 }
 
 export function HelpFeedback({ articleId }: { articleId: string }) {

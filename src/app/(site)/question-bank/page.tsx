@@ -40,7 +40,7 @@ export default async function QuestionBankPage({ searchParams }: { searchParams:
         <div className="flex flex-wrap gap-2 text-xs text-white/70">{FORMATS.map((f) => <span key={f} className="rounded-full border border-white/15 px-2.5 py-1">{f}</span>)}</div>
       </PageHeader>
       <div className="container grid gap-8 py-10 lg:grid-cols-[1fr_340px]">
-        <div className="space-y-8">
+        <div className="min-w-0 space-y-8">
           {sp.mode === "DAILY_CHALLENGE" && !user && <Alert tone="info">Sign in to take today&apos;s Daily Challenge.</Alert>}
           {user && ent.tier === "FREE" && <Alert tone="info" title="Free membership">You&apos;re practising with the free question set. <Link href="/pricing" className="font-semibold text-brand underline">Upgrade</Link> for the expanded bank and mock examinations.</Alert>}
           {inProgress.length > 0 && (
@@ -78,7 +78,7 @@ export default async function QuestionBankPage({ searchParams }: { searchParams:
             <p className="mt-4 text-sm"><Link href="/question-bank/browse" className="font-semibold text-brand hover:underline">Browse all questions →</Link></p>
           </section>
         </div>
-        <aside className="space-y-5">
+        <aside className="min-w-0 space-y-5">
           <div className="card overflow-hidden">
             <div className="bg-navy p-5 text-white">
               <p className="flex items-center gap-2 text-sm font-semibold text-gold-300"><CalendarCheck className="h-4 w-4" /> Daily Challenge</p>

@@ -16,3 +16,12 @@ export async function grantPremium(userId: string) {
 
 export const freeCourseSlug = "aml-cft-fundamentals";
 export const premiumCourseSlug = "ofac-50-percent-rule-ownership";
+
+/** Collects every object key in a JSON-serialisable value (to assert answer keys are never exposed). */
+export function allKeys(value: unknown, out = new Set<string>()): Set<string> {
+  if (Array.isArray(value)) value.forEach((v) => allKeys(v, out));
+  else if (value && typeof value === "object") for (const [k, v] of Object.entries(value)) { out.add(k); allKeys(v, out); }
+  return out;
+}
+export const SECRET_KEYS = ["isCorrect", "explanation", "acceptedAnswers", "modelAnswer", "correctOptionIds", "correctMatches", "keywords", "matchText"];
+export const exposesSecrets = (v: unknown) => SECRET_KEYS.some((k) => allKeys(JSON.parse(JSON.stringify(v))).has(k));

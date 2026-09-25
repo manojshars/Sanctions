@@ -48,6 +48,14 @@ export function AttemptRunner({ attemptId, title, isExam, expiresAt, questions: 
   const [remaining, setRemaining] = useState<number | null>(expiresAt ? Math.max(0, (new Date(expiresAt).getTime() - Date.now()) / 1000) : null);
   const textTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const submittedRef = useRef(false);
+  const [target, setTarget] = useState<string | null>(null);
+  // Navigate after the submission transition has settled (with a hard-navigation fallback).
+  useEffect(() => {
+    if (!target) return;
+    router.push(target);
+    const t = setTimeout(() => { if (window.location.pathname !== target) window.location.assign(target); }, 2500);
+    return () => clearTimeout(t);
+  }, [target, router]);
   const q = qs[idx];
 
   const submit = useCallback((auto = false) => {
@@ -56,13 +64,13 @@ export function AttemptRunner({ attemptId, title, isExam, expiresAt, questions: 
     startSubmit(async () => {
       try {
         const r = await submitAttemptAction(attemptId, auto);
-        router.push(r.href);
+        setTarget(r.href);
       } catch {
         submittedRef.current = false;
         setError("Could not submit. Check your connection and try again.");
       }
     });
-  }, [attemptId, router]);
+  }, [attemptId]);
 
   useEffect(() => {
     if (!expiresAt) return;

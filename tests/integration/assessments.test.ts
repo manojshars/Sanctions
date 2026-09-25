@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { makeUser, grantPremium } from "../helpers";
+import { exposesSecrets } from "../helpers";
 import {
   AttemptError, checkAnswer, getAttemptResults, getAttemptSession, saveAnswer, startAssessment, startPractice, submitAttempt, readinessInsights,
 } from "@/server/services/attempts";
@@ -49,7 +50,7 @@ describe("practice sessions", () => {
     const u = await makeUser();
     const a = await startPractice(u, { mode: "QUICK" });
     const s = await getAttemptSession(u.id, a.id);
-    expect(JSON.stringify(s.questions)).not.toMatch(/isCorrect|"explanation"/);
+    expect(exposesSecrets(s.questions.map((q) => ({ ...q, feedback: undefined })))).toBe(false);
     expect(s.questions.every((q) => q.feedback === null)).toBe(true);
     const qid = s.questions[0].questionId;
     const fb = await checkAnswer(u.id, a.id, qid, await correctResponse(qid));
@@ -112,7 +113,7 @@ describe("mock examinations", () => {
     const a = await startAssessment(u, "standard-mock-exam");
     const s = await getAttemptSession(u.id, a.id);
     expect(s.questions).toHaveLength(50);
-    expect(JSON.stringify(s.questions)).not.toMatch(/isCorrect|explanation|acceptedAnswers|modelAnswer|correctOptionIds/);
+    expect(exposesSecrets(s.questions)).toBe(false);
     await expect(checkAnswer(u.id, a.id, s.questions[0].questionId, { selected: [] })).rejects.toThrow(/after the examination is submitted/);
     expect(await getAttemptResults(u.id, a.id)).toBeNull();
   });

@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { AccessError, completeLesson, enroll, NotFoundError, saveLessonProgress } from "@/server/services/courses";
 import { AttemptError, startFinalAssessment, startKnowledgeCheck } from "@/server/services/attempts";
 import type { ActionState } from "@/server/action-types";
+import { redirectOrReturn } from "@/server/action-redirect";
 import { attemptPath } from "@/lib/paths";
 
 function toError(e: unknown): ActionState {
@@ -13,7 +14,7 @@ function toError(e: unknown): ActionState {
   throw e;
 }
 
-export async function enrollAction(courseId: string): Promise<ActionState> {
+export async function enrollAction(courseId: string, _prev?: ActionState, _form?: FormData): Promise<ActionState> {
   const user = await getCurrentUser();
   if (!user) {
     const c = await db.course.findUnique({ where: { id: courseId }, select: { slug: true } });
@@ -29,8 +30,7 @@ export async function enrollAction(courseId: string): Promise<ActionState> {
   } catch (e) {
     return toError(e);
   }
-  revalidatePath(`/academy/courses/${slug}`);
-  redirect(firstLesson ? `/academy/courses/${slug}/lessons/${firstLesson}` : `/academy/courses/${slug}`);
+  return redirectOrReturn(firstLesson ? `/academy/courses/${slug}/lessons/${firstLesson}` : `/academy/courses/${slug}`);
 }
 
 export async function saveProgressAction(lessonId: string, percent: number): Promise<ActionState> {
@@ -43,7 +43,7 @@ export async function saveProgressAction(lessonId: string, percent: number): Pro
   }
 }
 
-export async function completeLessonAction(lessonId: string, nextHref: string | null): Promise<ActionState> {
+export async function completeLessonAction(lessonId: string, nextHref: string | null, _prev?: ActionState, _form?: FormData): Promise<ActionState> {
   const user = await requireActionUser();
   let certificateId: string | null = null;
   try {
@@ -53,12 +53,12 @@ export async function completeLessonAction(lessonId: string, nextHref: string | 
     return toError(e);
   }
   revalidatePath("/dashboard");
-  if (certificateId) redirect(`/certificates/${certificateId}?new=1`);
-  if (nextHref && nextHref.startsWith("/academy/")) redirect(nextHref);
+  if (certificateId) return redirectOrReturn(`/certificates/${certificateId}?new=1`);
+  if (nextHref && nextHref.startsWith("/academy/")) return redirectOrReturn(nextHref);
   return { ok: true, message: "Lesson completed." };
 }
 
-export async function startFinalAssessmentAction(courseId: string): Promise<ActionState> {
+export async function startFinalAssessmentAction(courseId: string, _prev?: ActionState, _form?: FormData): Promise<ActionState> {
   const user = await requireActionUser();
   let id: string;
   try {
@@ -66,10 +66,10 @@ export async function startFinalAssessmentAction(courseId: string): Promise<Acti
   } catch (e) {
     return toError(e);
   }
-  redirect(attemptPath("FINAL", id));
+  return redirectOrReturn(attemptPath("FINAL", id));
 }
 
-export async function startKnowledgeCheckAction(courseId: string): Promise<ActionState> {
+export async function startKnowledgeCheckAction(courseId: string, _prev?: ActionState, _form?: FormData): Promise<ActionState> {
   const user = await requireActionUser();
   let id: string;
   try {
@@ -77,5 +77,5 @@ export async function startKnowledgeCheckAction(courseId: string): Promise<Actio
   } catch (e) {
     return toError(e);
   }
-  redirect(attemptPath("KNOWLEDGE_CHECK", id));
+  return redirectOrReturn(attemptPath("KNOWLEDGE_CHECK", id));
 }

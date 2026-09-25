@@ -1,5 +1,7 @@
 "use client";
+import { useActionRedirect } from "@/components/forms/use-action";
 import { useActionState, useTransition, useState } from "react";
+import { useRouter } from "next/navigation";
 import { checkoutAction, previewCouponAction, confirmDevPaymentAction, cancelMembershipAction, feeAssistanceAction } from "@/server/actions/billing";
 import { useFormAction } from "@/components/forms/use-action";
 import { SubmitButton } from "@/components/forms/submit-button";
@@ -29,7 +31,8 @@ export function CheckoutForm({ kind, slug, label = "Continue to secure checkout"
 }
 
 export function DevConfirm({ paymentId }: { paymentId: string }) {
-  const [state, action] = useActionState<ActionState>(async () => confirmDevPaymentAction(paymentId), {});
+  const [state, action] = useActionState<ActionState, FormData>(confirmDevPaymentAction.bind(null, paymentId), {});
+  useActionRedirect(state);
   return (
     <form action={action}>
       {state.error && <Alert tone="danger" className="mb-3">{state.error}</Alert>}
@@ -39,13 +42,14 @@ export function DevConfirm({ paymentId }: { paymentId: string }) {
 }
 
 export function CancelMembership({ id }: { id: string }) {
+  const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
   if (msg) return <p className="text-sm text-success">{msg}</p>;
   return confirm ? (
     <div className="flex items-center gap-2 text-sm"><span>Cancel renewal?</span>
-      <Button size="sm" variant="danger" disabled={pending} onClick={() => start(async () => { const r = await cancelMembershipAction(id); setMsg(r.message ?? r.error ?? null); })}>Yes, cancel</Button>
+      <Button size="sm" variant="danger" disabled={pending} onClick={() => start(async () => { const r = await cancelMembershipAction(id); setMsg(r.message ?? r.error ?? null); router.refresh(); })}>Yes, cancel</Button>
       <Button size="sm" variant="secondary" onClick={() => setConfirm(false)}>Keep</Button></div>
   ) : <Button size="sm" variant="secondary" onClick={() => setConfirm(true)}>Cancel subscription</Button>;
 }

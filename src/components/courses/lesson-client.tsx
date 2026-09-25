@@ -1,4 +1,5 @@
 "use client";
+import { useActionRedirect } from "@/components/forms/use-action";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { CheckCircle2, ClipboardList, NotebookPen } from "lucide-react";
 import { completeLessonAction, saveProgressAction, startKnowledgeCheckAction } from "@/server/actions/learning";
@@ -34,7 +35,8 @@ export function ProgressTracker({ lessonId, initial }: { lessonId: string; initi
 }
 
 export function CompleteLessonButton({ lessonId, nextHref, completed }: { lessonId: string; nextHref: string | null; completed: boolean }) {
-  const [state, action] = useActionState<ActionState>(async () => completeLessonAction(lessonId, nextHref), {});
+  const [state, action] = useActionState<ActionState, FormData>(completeLessonAction.bind(null, lessonId, nextHref), {});
+  useActionRedirect(state);
   if (completed && !nextHref) return <p className="inline-flex items-center gap-2 text-sm font-medium text-success"><CheckCircle2 className="h-4 w-4" /> Lesson completed</p>;
   return (
     <form action={action} className="space-y-2">
@@ -48,7 +50,8 @@ export function CompleteLessonButton({ lessonId, nextHref, completed }: { lesson
 }
 
 export function KnowledgeCheckButton({ courseId }: { courseId: string }) {
-  const [state, action] = useActionState<ActionState>(async () => startKnowledgeCheckAction(courseId), {});
+  const [state, action] = useActionState<ActionState, FormData>(startKnowledgeCheckAction.bind(null, courseId), {});
+  useActionRedirect(state);
   return (
     <form action={action}>
       {state.error && <Alert tone="danger" className="mb-2">{state.error}</Alert>}

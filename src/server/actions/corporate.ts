@@ -6,6 +6,7 @@ import { requireActionUser, getCurrentUser } from "@/lib/auth/session";
 import { AccessError, NotFoundError } from "@/server/services/courses";
 import { acceptInvitation, assignCourse, createOrganization, inviteMember, removeMember } from "@/server/services/corporate";
 import type { ActionState } from "@/server/action-types";
+import { redirectOrReturn } from "@/server/action-redirect";
 
 function fail(e: unknown): ActionState {
   if (e instanceof ZodError) return { error: e.issues[0]?.message ?? "Invalid input" };
@@ -17,7 +18,7 @@ export async function createOrgAction(_p: ActionState, form: FormData): Promise<
   const user = await requireActionUser();
   let id: string;
   try { id = (await createOrganization(user.id, { name: String(form.get("name") ?? ""), industry: String(form.get("industry") ?? "") || undefined })).id; } catch (e) { return fail(e); }
-  redirect(`/corporate/dashboard?org=${id}`);
+  return redirectOrReturn(`/corporate/dashboard?org=${id}`);
 }
 
 export async function inviteAction(_p: ActionState, form: FormData): Promise<ActionState> {
@@ -47,13 +48,12 @@ export async function assignAction(_p: ActionState, form: FormData): Promise<Act
 export async function removeMemberAction(orgId: string, userId: string): Promise<ActionState> {
   const user = await requireActionUser();
   try { await removeMember(user.id, orgId, userId); } catch (e) { return fail(e); }
-  revalidatePath("/corporate/dashboard");
   return { ok: true };
 }
 
-export async function acceptInviteAction(token: string): Promise<ActionState> {
+export async function acceptInviteAction(token: string, _prev?: ActionState, _form?: FormData): Promise<ActionState> {
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=${encodeURIComponent(`/corporate/join?token=${token}`)}`);
   try { await acceptInvitation(user.id, token); } catch (e) { return fail(e); }
-  redirect("/my-learning?tab=plan");
+  return redirectOrReturn("/my-learning?tab=plan");
 }

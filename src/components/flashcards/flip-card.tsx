@@ -13,7 +13,7 @@ export function FlipCard({ front, back, explanation, topic, className, flipped: 
   const h = size === "lg" ? "min-h-[320px] sm:min-h-[360px]" : "min-h-[240px]";
   return (
     <div className={cn("flip-scene", className)}>
-      <button type="button" onClick={toggle} aria-label={flipped ? "Show question" : "Reveal answer"} aria-pressed={flipped}
+      <button type="button" onClick={toggle} aria-label={flipped ? "Flip card to show the question" : "Flip card to show the answer"} aria-pressed={flipped}
         className={cn("flip-card relative block w-full text-left", h, flipped && "is-flipped")}>
         <div className={cn("flip-face absolute inset-0 flex flex-col rounded-2xl border border-line bg-surface p-6 shadow-card sm:p-8")} aria-hidden={flipped}>
           {topic && <span className="eyebrow">{topic}</span>}

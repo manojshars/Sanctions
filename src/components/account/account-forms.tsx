@@ -39,7 +39,7 @@ export function PasswordForm() {
 }
 
 export function ResendVerification() {
-  const [state, action] = useActionState<ActionState>(async () => resendVerificationAction(), {});
+  const [state, action] = useActionState<ActionState, FormData>(resendVerificationAction, {});
   return (
     <form action={action} className="flex items-center gap-3">
       <SubmitButton size="sm" variant="secondary" pendingText="Sending…">Resend verification email</SubmitButton>

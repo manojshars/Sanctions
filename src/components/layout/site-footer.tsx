@@ -24,7 +24,7 @@ export function SiteFooter() {
               <ul className="mt-4 space-y-2.5">
                 {col.items.map((i) => (
                   <li key={i.href}>
-                    <Link href={i.href} className="text-sm text-white/70 transition hover:text-white">{i.label}</Link>
+                    <Link prefetch={false} href={i.href} className="text-sm text-white/70 transition hover:text-white">{i.label}</Link>
                   </li>
                 ))}
               </ul>
@@ -36,10 +36,10 @@ export function SiteFooter() {
         <div className="container flex flex-col gap-3 py-6 text-xs text-white/55 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} FinCrime Academy. Educational content only — not legal advice. Internal completion certificates are not external accredited qualifications.</p>
           <div className="flex gap-5">
-            <Link href="/privacy" className="hover:text-white">Privacy</Link>
-            <Link href="/terms" className="hover:text-white">Terms</Link>
-            <Link href="/privacy#cookies" className="hover:text-white">Cookies</Link>
-            <Link href="/sitemap.xml" className="hover:text-white">Sitemap</Link>
+            <Link prefetch={false} href="/privacy" className="hover:text-white">Privacy</Link>
+            <Link prefetch={false} href="/terms" className="hover:text-white">Terms</Link>
+            <Link prefetch={false} href="/privacy#cookies" className="hover:text-white">Cookies</Link>
+            <Link prefetch={false} href="/sitemap.xml" className="hover:text-white">Sitemap</Link>
           </div>
         </div>
       </div>

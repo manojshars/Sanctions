@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { makeUser, grantPremium, freeCourseSlug, premiumCourseSlug } from "../helpers";
+import { exposesSecrets } from "../helpers";
 import { AccessError, completeLesson, enroll, getLessonForLearner, saveLessonProgress } from "@/server/services/courses";
 import { getCompletionStatus } from "@/server/services/certificates";
 import { AttemptError, getAttemptSession, saveAnswer, startFinalAssessment, submitAttempt } from "@/server/services/attempts";
@@ -149,7 +150,6 @@ describe("course completion and certificates", () => {
     for (const l of c.modules.flatMap((m) => m.lessons)) await completeLesson(u.id, l.id);
     const a = await startFinalAssessment(u, c.id);
     const s = await getAttemptSession(u.id, a.id);
-    const json = JSON.stringify(s.questions);
-    expect(json).not.toMatch(/isCorrect|explanation|acceptedAnswers|modelAnswer/);
+    expect(exposesSecrets(s.questions)).toBe(false);
   });
 });

@@ -9,6 +9,7 @@ import { UploadError } from "@/lib/storage";
 import { AccessError, NotFoundError } from "@/server/services/courses";
 import { closeOwnTicket, createTicket, replyToTicket, updateTicket, type Upload } from "@/server/services/support";
 import type { ActionState } from "@/server/action-types";
+import { redirectOrReturn } from "@/server/action-redirect";
 
 async function files(form: FormData): Promise<Upload[]> {
   const out: Upload[] = [];
@@ -34,7 +35,7 @@ export async function createTicketAction(_p: ActionState, form: FormData): Promi
   } catch (e) {
     return fail(e);
   }
-  redirect(`/support/tickets/${n}?created=1`);
+  return redirectOrReturn(`/support/tickets/${n}?created=1`);
 }
 
 export async function replyTicketAction(_p: ActionState, form: FormData): Promise<ActionState> {
@@ -69,7 +70,6 @@ export async function updateTicketAction(_p: ActionState, form: FormData): Promi
 export async function closeTicketAction(number: number): Promise<ActionState> {
   const user = await requireActionUser();
   try { await closeOwnTicket(user, number); } catch (e) { return fail(e); }
-  revalidatePath(`/support/tickets/${number}`);
   return { ok: true };
 }
 

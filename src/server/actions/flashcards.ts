@@ -5,6 +5,7 @@ import { getCurrentUser, requireActionUser } from "@/lib/auth/session";
 import { AccessError, NotFoundError } from "@/server/services/courses";
 import { addToCollection, createCustomCard, createPersonalDeck, rateCard } from "@/server/services/flashcards";
 import type { ActionState } from "@/server/action-types";
+import { redirectOrReturn } from "@/server/action-redirect";
 import type { CardRating } from "@/lib/srs";
 import { ZodError } from "zod";
 
@@ -43,7 +44,7 @@ export async function createDeckAction(_p: ActionState, form: FormData): Promise
     if (e instanceof ZodError) return { error: "Enter a deck title (2–80 characters)." };
     throw e;
   }
-  redirect(`/flashcards/${slug}`);
+  return redirectOrReturn(`/flashcards/${slug}`);
 }
 
 export async function createCardAction(_p: ActionState, form: FormData): Promise<ActionState> {

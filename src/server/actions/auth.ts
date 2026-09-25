@@ -5,6 +5,7 @@ import { createSession, currentIp, destroySession } from "@/lib/auth/session";
 import { rateLimit } from "@/lib/rate-limit";
 import { AuthError, authenticate, registerSchema, registerUser, requestPasswordReset, resetPassword } from "@/server/services/auth";
 import type { ActionState } from "@/server/action-types";
+import { redirectOrReturn } from "@/server/action-redirect";
 import { audit } from "@/lib/audit";
 
 function safeNext(next: FormDataEntryValue | null): string {
@@ -24,7 +25,7 @@ export async function loginAction(_prev: ActionState, form: FormData): Promise<A
   if (!user) return { error: "Incorrect email or password." };
   await createSession(user.id);
   if (user.role !== "LEARNER") await audit(user.id, "auth.login", "User", user.id, undefined, ip);
-  redirect(safeNext(form.get("next")));
+  return redirectOrReturn(safeNext(form.get("next")));
 }
 
 export async function registerAction(_prev: ActionState, form: FormData): Promise<ActionState> {
@@ -47,7 +48,7 @@ export async function registerAction(_prev: ActionState, form: FormData): Promis
     if (e instanceof AuthError) return { error: e.message, fieldErrors: { email: [e.message] } };
     throw e;
   }
-  redirect(safeNext(form.get("next")) === "/dashboard" ? "/dashboard?welcome=1" : safeNext(form.get("next")));
+  return redirectOrReturn(safeNext(form.get("next")) === "/dashboard" ? "/dashboard?welcome=1" : safeNext(form.get("next")));
 }
 
 export async function logoutAction() {
@@ -74,5 +75,5 @@ export async function resetPasswordAction(_prev: ActionState, form: FormData): P
     if (e instanceof AuthError) return { error: e.message };
     throw e;
   }
-  redirect("/login?reset=1");
+  return redirectOrReturn("/login?reset=1");
 }

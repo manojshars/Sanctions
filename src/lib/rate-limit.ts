@@ -4,7 +4,11 @@
  */
 const buckets = new Map<string, { count: number; resetAt: number }>();
 
-export function rateLimit(key: string, limit: number, windowMs: number): { ok: boolean; retryAfterMs: number } {
+/** RATE_LIMIT_MULTIPLIER scales every limit (default 1). Useful for load/E2E testing; keep 1 in production. */
+const MULTIPLIER = Math.max(1, Number(process.env.RATE_LIMIT_MULTIPLIER) || 1);
+
+export function rateLimit(key: string, baseLimit: number, windowMs: number): { ok: boolean; retryAfterMs: number } {
+  const limit = baseLimit * MULTIPLIER;
   const now = Date.now();
   const b = buckets.get(key);
   if (!b || b.resetAt <= now) {

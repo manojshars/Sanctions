@@ -33,7 +33,7 @@ export async function changePasswordAction(_p: ActionState, form: FormData): Pro
   return { ok: true, message: "Password changed." };
 }
 
-export async function resendVerificationAction(): Promise<ActionState> {
+export async function resendVerificationAction(_prev?: ActionState, _form?: FormData): Promise<ActionState> {
   const user = await requireActionUser();
   if (!rateLimit(`verify-mail:${user.id}`, 3, 60 * 60_000).ok) return { error: "Please wait before requesting another email." };
   await issueEmailVerification(user.email);

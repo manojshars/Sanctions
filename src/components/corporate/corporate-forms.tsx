@@ -1,5 +1,7 @@
 "use client";
+import { useActionRedirect } from "@/components/forms/use-action";
 import { useActionState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { acceptInviteAction, assignAction, createOrgAction, inviteAction, removeMemberAction } from "@/server/actions/corporate";
 import { submitInquiryAction } from "@/server/actions/public";
 import { useFormAction } from "@/components/forms/use-action";
@@ -79,11 +81,13 @@ export function AssignForm({ orgId, courses, members }: { orgId: string; courses
 
 export function RemoveMemberButton({ orgId, userId }: { orgId: string; userId: string }) {
   const [pending, start] = useTransition();
-  return <Button size="sm" variant="ghost" disabled={pending} onClick={() => { if (confirm("Remove this member and their assignments?")) start(async () => { await removeMemberAction(orgId, userId); }); }}>Remove</Button>;
+  const router = useRouter();
+  return <Button size="sm" variant="ghost" disabled={pending} onClick={() => { if (confirm("Remove this member and their assignments?")) start(async () => { await removeMemberAction(orgId, userId); router.refresh(); }); }}>Remove</Button>;
 }
 
 export function AcceptInvite({ token }: { token: string }) {
-  const [state, action] = useActionState<ActionState>(async () => acceptInviteAction(token), {});
+  const [state, action] = useActionState<ActionState, FormData>(acceptInviteAction.bind(null, token), {});
+  useActionRedirect(state);
   return (
     <form action={action} className="space-y-3">
       {state.error && <Alert tone="danger">{state.error}</Alert>}

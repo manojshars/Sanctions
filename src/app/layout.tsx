@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { THEME_SCRIPT } from "@/components/layout/theme-toggle";
 import { appUrl } from "@/lib/utils";
+import { HydrationMarker } from "@/components/layout/hydration-marker";
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl()),
@@ -23,7 +24,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen">
+        {children}
+        <HydrationMarker />
+      </body>
     </html>
   );
 }
