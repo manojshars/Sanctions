@@ -400,3 +400,13 @@ export function modeLabel(kind: AttemptKind, mode: string, assessmentName?: stri
   if (kind === "DAILY_CHALLENGE") return "Daily Challenge";
   return (PRACTICE_MODES as Record<string, { label: string }>)[mode]?.label ?? "Practice";
 }
+
+/** Short knowledge check (3 questions) drawn from the course's question pool. Requires enrolment. */
+export async function startKnowledgeCheck(user: Actor, courseId: string, rng: () => number = Math.random) {
+  const enrollment = await db.enrollment.findUnique({ where: { userId_courseId: { userId: user.id, courseId } } });
+  if (!enrollment) throw new AccessError("Enrol in the course first.");
+  const course = await db.course.findUniqueOrThrow({ where: { id: courseId } });
+  let ids = (await db.question.findMany({ where: { courseId, status: "PUBLISHED" }, select: { id: true } })).map((q) => q.id);
+  if (ids.length < 3) ids = [...ids, ...(await db.question.findMany({ where: { topicId: course.topicId, status: "PUBLISHED", id: { notIn: ids } }, select: { id: true }, take: 10 })).map((q) => q.id)];
+  return createAttempt(user.id, { kind: "KNOWLEDGE_CHECK", mode: "KNOWLEDGE_CHECK", courseId, questionIds: shuffle(ids, rng).slice(0, 3), config: { mode: "KNOWLEDGE_CHECK" } });
+}
