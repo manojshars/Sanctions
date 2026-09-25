@@ -1,6 +1,6 @@
 // FinCrime Academy — normalized PostgreSQL schema.
 // Authorization is enforced in the server layer (src/lib/auth, src/lib/rbac, src/lib/entitlements);
-// see prisma/migrations/*_rls for optional row-level-security policies used as defence in depth.
+// see docs/SECURITY.md for the access model and optional Postgres row-level-security guidance.
 
 generator client {
   provider = "prisma-client-js"
