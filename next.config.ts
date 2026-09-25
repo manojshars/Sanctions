@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [{ protocol: "https", hostname: "i.ytimg.com" }],
   },
   serverExternalPackages: ["bcryptjs"],
+  experimental: { serverActions: { bodySizeLimit: "16mb" } },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
