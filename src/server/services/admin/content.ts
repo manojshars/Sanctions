@@ -12,7 +12,7 @@ type Actor = { id: string; role: Role };
 export class AdminInputError extends Error {}
 
 const lines = (v: string | undefined | null) => (v ?? "").split("\n").map((s) => s.trim()).filter(Boolean);
-const opt = (v: unknown) => (typeof v === "string" && v.trim() === "" ? null : v);
+const opt = (v: unknown) => (v === undefined || (typeof v === "string" && v.trim() === "") ? null : v);
 export const statusSchema = z.enum(["DRAFT", "IN_REVIEW", "PUBLISHED", "ARCHIVED"]);
 
 async function uniqueSlug(base: string, exists: (slug: string) => Promise<boolean>) {

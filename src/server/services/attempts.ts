@@ -150,7 +150,8 @@ export async function startAssessment(user: Actor, slug: string, config: z.infer
   const ent = await getEntitlements(user);
   if (a.accessTier === "PREMIUM" && !hasFeature(ent, "MOCK_EXAMS")) throw new AccessError("Mock examinations require Premium or a package that includes mock exams.");
   const topics = a.configurable && config.topics?.length ? config.topics : a.topicSlugs.length ? a.topicSlugs : undefined;
-  const difficulty = a.configurable ? config.difficulty ?? a.difficulty : a.difficulty;
+  // For configurable exams, `null` means "any difficulty"; `undefined` means "use the template default".
+  const difficulty = a.configurable && config.difficulty !== undefined ? config.difficulty : a.difficulty;
   const count = a.configurable && config.questionCount ? config.questionCount : a.questionCount;
   const minutes = a.configurable && config.timeLimitMinutes !== undefined ? config.timeLimitMinutes : a.timeLimitMinutes;
   const pool = await candidatePool(ent, { topics, difficulty });
