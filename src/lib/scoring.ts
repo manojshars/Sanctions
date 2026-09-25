@@ -90,7 +90,10 @@ export function gradeQuestion(q: GradableQuestion, r: QuestionResponse | null | 
       const sel = new Set(uniq(r.selected ?? []).filter((id) => valid.has(id)));
       let hits = 0;
       let wrong = 0;
-      for (const id of sel) (correct.has(id) ? hits++ : wrong++);
+      for (const id of sel) {
+        if (correct.has(id)) hits++;
+        else wrong++;
+      }
       const ok = correct.size > 0 && hits === correct.size && wrong === 0;
       const partial = correct.size ? Math.max(0, (hits - wrong) / correct.size) : 0;
       return { correct: ok, partial: ok ? 1 : Math.min(partial, 0.99), answered: true };

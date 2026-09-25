@@ -44,7 +44,8 @@ export const initialSrsState: SrsState = {
 const clampEase = (e: number) => Math.round(Math.min(MAX_EASE, Math.max(MIN_EASE, e)) * 100) / 100;
 
 export function schedule(prev: SrsState, rating: CardRating, now: Date = new Date()): SrsResult {
-  let { easeFactor, intervalDays, repetitions, lapses } = prev;
+  const { lapses } = prev;
+  let { easeFactor, intervalDays, repetitions } = prev;
 
   if (rating === "AGAIN") {
     return {

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * Idempotent seed. All records are clearly-labelled development/sample content authored for
  * FinCrime Academy. Re-running updates content by slug without duplicating it.
