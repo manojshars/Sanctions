@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePermission } from "@/lib/auth/session";
+import { blobStorageEnabled } from "@/lib/storage";
 import { db } from "@/lib/db";
 import { AdminHeader, Flash } from "@/components/admin/ui";
 import { ConfirmButton } from "@/components/admin/confirm-button";
@@ -31,7 +32,7 @@ export default async function EditMaterial({ params, searchParams }: { params: P
           <ConfirmButton action={deleteMaterialAction.bind(null, m.id)} label="Delete material" confirm={`Permanently delete "${m.title}" and its file? This cannot be undone.`} />
         </>} />
       <Flash sp={sp} />
-      <MaterialForm action={updateMaterialAction.bind(null, m.id)} m={m} courses={courses} topics={topics} />
+      <MaterialForm action={updateMaterialAction.bind(null, m.id)} m={m} courses={courses} topics={topics} direct={blobStorageEnabled()} />
     </>
   );
 }

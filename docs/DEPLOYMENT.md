@@ -9,8 +9,10 @@
 | `APP_URL` | ✅ | Public base URL (emails, certificates, sitemap). |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | for payments | Without them, production checkout is **disabled** (dev mode simulates payments only when `NODE_ENV≠production`). Webhook: `POST /api/stripe/webhook` with events `checkout.session.completed`, `customer.subscription.deleted`, `invoice.payment_failed`. Optionally set Stripe price IDs per plan in Admin → Memberships. |
 | `EMAIL_PROVIDER`, `RESEND_API_KEY`, `EMAIL_FROM` | for email | Default `log` records emails in `EmailLog` only. `resend` sends via Resend. |
-| `STORAGE_DRIVER` | – | `local` writes to `./storage` (support attachments and training-material PDFs up to 25 MB; Server Action body limit is 30 MB in `next.config.ts` — raise your proxy/platform request limit to match). On ephemeral/multi-instance hosts implement S3/Supabase Storage in `src/lib/storage.ts` (same `putObject`/`getObject` interface). |
-| `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `SEED_DEMO_USERS` | seed | Set `SEED_DEMO_USERS=false` in production. |
+| `BLOB_READ_WRITE_TOKEN` | on Vercel | Stores uploads in a private Vercel Blob store (added automatically when a Blob store is connected). Training-material PDFs are then uploaded directly from the browser. |
+| `STORAGE_DRIVER` | – | Without a Blob token, files go to `./storage` on local disk. Set `local` to force local storage. Server Action body limit is 30 MB in `next.config.ts`; raise your proxy request limit to match. For other object stores, implement them in `src/lib/storage.ts` behind the same `putObject`/`getObject`/`deleteObject` interface. |
+| `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `SEED_DEMO_USERS` | seed | On hosted deployments (`VERCEL_ENV`/`NODE_ENV=production`), the seed requires a strong admin password and skips demo users unless `SEED_DEMO_USERS=true`. |
+| `SEED_ON_DEPLOY`, `MIGRATE_ON_BUILD` | Vercel | See [DEPLOY_VERCEL.md](DEPLOY_VERCEL.md). |
 | `RATE_LIMIT_MULTIPLIER` | – | Keep `1` in production. |
 
 ## Steps
@@ -23,7 +25,7 @@ npm run build
 npm start                # or deploy to Vercel / a Node host / container
 ```
 
-- **Vercel:** set env vars, build command `npm run build`, run `prisma migrate deploy` in CI or a release step. Configure external file storage and a shared rate limiter (Redis/Upstash).
+- **Vercel:** follow [DEPLOY_VERCEL.md](DEPLOY_VERCEL.md). The `vercel-build` script runs migrations, and Blob storage handles uploads.
 - **Container/VM:** `next start` behind a reverse proxy with TLS; persist `./storage` or use object storage.
 - Security headers are set in `next.config.ts`; add a CSP at the edge if desired (YouTube embeds use `youtube-nocookie.com`, thumbnails `i.ytimg.com`).
 - Analytics: none bundled. If added, load only after the `fca_consent=all` cookie is set.

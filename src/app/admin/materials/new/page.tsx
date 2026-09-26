@@ -1,4 +1,5 @@
 import { requirePermission } from "@/lib/auth/session";
+import { blobStorageEnabled } from "@/lib/storage";
 import { db } from "@/lib/db";
 import { AdminHeader, Flash } from "@/components/admin/ui";
 import { MaterialForm } from "@/components/admin/material-form";
@@ -18,7 +19,7 @@ export default async function NewMaterial({ searchParams }: { searchParams: Prom
     <>
       <AdminHeader title="Upload training material" back={course ? { href: `/admin/courses/${course.id}`, label: course.title } : { href: "/admin/materials", label: "Training materials" }} />
       <Flash sp={sp} />
-      <MaterialForm action={createMaterialAction} courses={courses} topics={topics} defaultCourseId={course?.id} />
+      <MaterialForm action={createMaterialAction} courses={courses} topics={topics} defaultCourseId={course?.id} direct={blobStorageEnabled()} />
     </>
   );
 }

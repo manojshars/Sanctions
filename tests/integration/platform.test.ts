@@ -132,6 +132,8 @@ describe("support tickets", () => {
     await expect(createTicket(u, { category: "Other", subject: "With a bad file", body: "See attached file please." }, [{ name: "x.png", type: "image/png", bytes: new Uint8Array([1, 2, 3]) }])).rejects.toThrow(/does not match/);
     const ok = await createTicket(u, { category: "Other", subject: "With a good file", body: "See attached file please." }, [{ name: "notes.txt", type: "text/plain", bytes: new TextEncoder().encode("hello") }]);
     expect(await db.supportAttachment.count({ where: { message: { ticketId: ok.id } } })).toBe(1);
+    const big = { name: "a.txt", type: "text/plain", bytes: new Uint8Array(1.5 * 1024 * 1024).fill(65) };
+    await expect(createTicket(u, { category: "Other", subject: "Too much attached", body: "See attached files please." }, [big, big, big])).rejects.toThrow(/4 MB or smaller in total/);
   });
 });
 

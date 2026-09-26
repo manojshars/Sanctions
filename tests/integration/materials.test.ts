@@ -105,6 +105,23 @@ describe("training material uploads", () => {
     expect(listed.find((r) => r.id === premium.id)).toMatchObject({ course: null, topic: { shortName: topic.shortName } });
   });
 
+  it("accepts a PDF already uploaded to storage and refuses to reuse another material's file", async () => {
+    const editor = await makeUser({ role: "EDITOR" });
+    const topic = await db.topic.findUniqueOrThrow({ where: { slug: "sanctions" } });
+    const file = await pdf(1, "Direct");
+    const { putObject } = await import("@/lib/storage");
+    const key = await putObject(file.bytes, "pdf", "materials");
+    const m = await createMaterial(editor, { title: "Direct upload", topicId: topic.id, accessTier: "FREE", isPublished: true }, { ...file, storageKey: key });
+    created.push(m.id);
+    expect(m.storageKey).toBe(key);
+    await expect(createMaterial(editor, { title: "Reuse", topicId: topic.id, accessTier: "FREE", isPublished: true }, { ...file, storageKey: key })).rejects.toThrow(/already attached/);
+    expect(existsSync(storagePath(key))).toBe(true);
+
+    const badKey = await putObject(new TextEncoder().encode("not a pdf"), "pdf", "materials");
+    await expect(createMaterial(editor, { title: "Bad direct", topicId: topic.id, accessTier: "FREE", isPublished: true }, { name: "x.pdf", type: "application/pdf", bytes: new TextEncoder().encode("not a pdf"), storageKey: badKey })).rejects.toThrow(/not a valid PDF/);
+    expect(existsSync(storagePath(badKey))).toBe(false);
+  });
+
   it("course materials drop the standalone topic and reject unknown references", async () => {
     const editor = await makeUser({ role: "EDITOR" });
     const course = await db.course.findUniqueOrThrow({ where: { slug: premiumCourseSlug } });

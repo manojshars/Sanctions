@@ -1,5 +1,13 @@
 "use client";
 import { useRef, useTransition } from "react";
+
+/** Blocks submission early when attachments exceed the 4 MB per-message limit (the server re-checks). */
+function checkAttachments(e: React.ChangeEvent<HTMLInputElement>) {
+  const files = Array.from(e.currentTarget.files ?? []);
+  const total = files.reduce((n, f) => n + f.size, 0);
+  e.currentTarget.setCustomValidity(files.length > 3 ? "You can attach up to 3 files." : total > 4 * 1024 * 1024 ? "Attachments must be 4 MB or smaller in total." : "");
+  e.currentTarget.reportValidity();
+}
 import { createTicketAction, replyTicketAction, updateTicketAction, closeTicketAction, helpFeedbackAction } from "@/server/actions/support";
 import { useFormAction } from "@/components/forms/use-action";
 import { SubmitButton } from "@/components/forms/submit-button";
@@ -21,7 +29,7 @@ export function NewTicketForm({ categories, defaultCategory }: { categories: rea
       </Field>
       <Field label="Subject" htmlFor="subject" error={fe.subject} required><Input id="subject" name="subject" maxLength={160} required /></Field>
       <Field label="Describe the issue" htmlFor="body" error={fe.body} hint="Include what you were doing, what you expected and what happened." required><Textarea id="body" name="body" maxLength={10000} required className="min-h-[160px]" /></Field>
-      <Field label="Attachments (optional)" htmlFor="attachments" hint="Up to 3 files · PNG, JPG, PDF or TXT · 5 MB each"><input id="attachments" name="attachments" type="file" multiple accept=".png,.jpg,.jpeg,.pdf,.txt,image/png,image/jpeg,application/pdf,text/plain" className="block text-sm" /></Field>
+      <Field label="Attachments (optional)" htmlFor="attachments" hint="Up to 3 files · PNG, JPG, PDF or TXT · 4 MB in total"><input id="attachments" name="attachments" type="file" multiple onChange={checkAttachments} accept=".png,.jpg,.jpeg,.pdf,.txt,image/png,image/jpeg,application/pdf,text/plain" className="block text-sm" /></Field>
       <SubmitButton size="lg" pendingText="Submitting…">Submit ticket</SubmitButton>
     </form>
   );
@@ -35,7 +43,7 @@ export function ReplyForm({ number, staff }: { number: number; staff?: boolean }
       <input type="hidden" name="number" value={number} />
       <label htmlFor="reply" className="label">{staff ? "Reply or internal note" : "Your reply"}</label>
       <Textarea id="reply" name="body" required maxLength={10000} />
-      <input name="attachments" type="file" multiple aria-label="Attachments" accept=".png,.jpg,.jpeg,.pdf,.txt" className="block text-sm" />
+      <input name="attachments" type="file" multiple onChange={checkAttachments} aria-label="Attachments" accept=".png,.jpg,.jpeg,.pdf,.txt" className="block text-sm" />
       {staff && <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="internal" className="accent-[#D6B66B]" /> Internal note (not visible to the user)</label>}
       {state.error && <Alert tone="danger">{state.error}</Alert>}
       {state.ok && <Alert tone="success">{state.message}</Alert>}

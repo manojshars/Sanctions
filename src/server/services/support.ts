@@ -3,7 +3,7 @@ import type { TicketPriority, TicketStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { can, type Role } from "@/lib/rbac";
 import { notify, sendEmail } from "@/lib/email";
-import { putObject, validateUpload } from "@/lib/storage";
+import { MAX_UPLOAD_BYTES, putObject, UploadError, validateUpload } from "@/lib/storage";
 import { AccessError, NotFoundError } from "./courses";
 import { audit } from "@/lib/audit";
 
@@ -22,9 +22,14 @@ export const ticketSchema = z.object({
 
 export type Upload = { name: string; type: string; bytes: Uint8Array };
 
-async function saveAttachments(messageId: string, files: Upload[]) {
+function validateAll(files: Upload[]) {
   if (files.length > 3) throw new AccessError("You can attach up to 3 files.");
-  const validated = files.map((f) => ({ f, v: validateUpload(f.name, f.type, f.bytes) }));
+  if (files.reduce((n, f) => n + f.bytes.byteLength, 0) > MAX_UPLOAD_BYTES) throw new UploadError("Attachments must be 4 MB or smaller in total.");
+  return files.map((f) => ({ f, v: validateUpload(f.name, f.type, f.bytes) }));
+}
+
+async function saveAttachments(messageId: string, files: Upload[]) {
+  const validated = validateAll(files);
   for (const { f, v } of validated) {
     const storageKey = await putObject(f.bytes, v.ext);
     await db.supportAttachment.create({ data: { messageId, filename: v.safeName, mimeType: f.type, size: f.bytes.byteLength, storageKey } });
@@ -33,7 +38,7 @@ async function saveAttachments(messageId: string, files: Upload[]) {
 
 export async function createTicket(user: Actor, input: z.infer<typeof ticketSchema>, files: Upload[] = []) {
   const data = ticketSchema.parse(input);
-  files.forEach((f) => validateUpload(f.name, f.type, f.bytes)); // validate before writing anything
+  validateAll(files); // validate before writing anything
   const ticket = await db.supportTicket.create({
     data: { userId: user.id, subject: data.subject, category: data.category, messages: { create: { authorId: user.id, body: data.body } } },
     include: { messages: true },
@@ -69,7 +74,7 @@ export async function replyToTicket(actor: Actor, number: number, body: string, 
   const staff = isSupportStaff(actor.role);
   const internal = !!opts.internal && staff;
   if (ticket.status === "CLOSED" && !staff) throw new AccessError("This ticket is closed. Please open a new ticket.");
-  (opts.files ?? []).forEach((f) => validateUpload(f.name, f.type, f.bytes));
+  validateAll(opts.files ?? []);
   const msg = await db.supportMessage.create({ data: { ticketId: ticket.id, authorId: actor.id, body: text, isInternal: internal } });
   if (opts.files?.length) await saveAttachments(msg.id, opts.files);
   if (internal) return msg;

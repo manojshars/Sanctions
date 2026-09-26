@@ -3,6 +3,8 @@
  * FinCrime Academy. Re-running updates content by slug without duplicating it.
  *
  * Demo accounts are created unless SEED_DEMO_USERS=false (never enable demo users in production).
+ * On a hosted deployment (VERCEL_ENV or NODE_ENV=production) demo accounts are off unless
+ * SEED_DEMO_USERS=true, and a strong SEED_ADMIN_PASSWORD is required.
  */
 import "dotenv/config";
 import { PrismaClient, type Prisma } from "@prisma/client";
@@ -217,9 +219,22 @@ async function upsertUser(email: string, name: string, role: "LEARNER" | "EDITOR
   });
 }
 
+const HOSTED = !!process.env.VERCEL_ENV || process.env.NODE_ENV === "production";
+
+function adminPassword(): string {
+  const pw = process.env.SEED_ADMIN_PASSWORD;
+  if (!HOSTED) return pw || "ChangeMe!Admin2026";
+  if (!pw || pw === "ChangeMe!Admin2026" || pw.length < 12 || !/[A-Za-z]/.test(pw) || !/\d/.test(pw)) {
+    throw new Error("Set SEED_ADMIN_PASSWORD to a unique password (12+ characters with letters and numbers) before seeding a hosted deployment.");
+  }
+  return pw;
+}
+
 async function seedUsers() {
-  const admin = await upsertUser(process.env.SEED_ADMIN_EMAIL || "admin@fincrime.academy", "Platform Administrator", "ADMIN", process.env.SEED_ADMIN_PASSWORD || "ChangeMe!Admin2026");
-  if (process.env.SEED_DEMO_USERS === "false") return admin;
+  // The password is only set when the admin account is first created; re-seeding never resets it.
+  const admin = await upsertUser(process.env.SEED_ADMIN_EMAIL || "admin@fincrime.academy", "Platform Administrator", "ADMIN", adminPassword());
+  const demo = process.env.SEED_DEMO_USERS ? process.env.SEED_DEMO_USERS === "true" : !HOSTED;
+  if (!demo) return admin;
   const pw = "DemoPass2026!";
   await upsertUser("editor@demo.fincrime.academy", "Demo Content Editor", "EDITOR", pw);
   await upsertUser("support@demo.fincrime.academy", "Demo Support Agent", "SUPPORT", pw);

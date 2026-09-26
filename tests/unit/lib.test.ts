@@ -152,7 +152,7 @@ describe("upload validation", () => {
     expect(validateUpload("a.png", "image/png", new Uint8Array([0x89, 0x50, 0x4e, 0x47, 1])).ext).toBe("png");
     expect(() => validateUpload("a.png", "image/png", new Uint8Array([1, 2, 3]))).toThrow(UploadError);
     expect(() => validateUpload("a.exe", "application/x-msdownload", new Uint8Array([1]))).toThrow(UploadError);
-    expect(() => validateUpload("big.txt", "text/plain", new Uint8Array(6 * 1024 * 1024).fill(65))).toThrow(/5 MB/);
+    expect(() => validateUpload("big.txt", "text/plain", new Uint8Array(5 * 1024 * 1024).fill(65))).toThrow(/4 MB/);
     expect(validateUpload("../../etc/passwd.txt", "text/plain", new TextEncoder().encode("hi")).safeName).not.toContain("/");
   });
 });

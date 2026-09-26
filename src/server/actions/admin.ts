@@ -16,7 +16,7 @@ import {
   updatePackage, updatePlan, updateSetting,
 } from "@/server/services/admin/users";
 import { createMaterial, deleteMaterial, updateMaterial, type UploadedFile } from "@/server/services/admin/materials";
-import { MAX_MATERIAL_BYTES } from "@/lib/storage";
+import { directUploadKey, getObject, MAX_MATERIAL_BYTES } from "@/lib/storage";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 
@@ -218,6 +218,14 @@ export async function reviewModerationAction(id: string, status: "PUBLISHED" | "
 
 // ───── Training materials (PDF uploads) ─────
 async function pdfFrom(f: FormData): Promise<UploadedFile | null> {
+  // Large PDFs on Vercel are uploaded by the browser straight to Blob storage; the form carries its pathname.
+  const direct = s(f, "blobPathname");
+  if (direct) {
+    const key = directUploadKey(direct);
+    if (!key) throw new AdminInputError("The uploaded file reference is not valid. Choose the file again.");
+    const bytes = await getObject(key).catch(() => { throw new AdminInputError("The uploaded file could not be found. Choose the file again."); });
+    return { name: s(f, "blobFilename") || "material.pdf", type: "application/pdf", bytes: new Uint8Array(bytes), storageKey: key };
+  }
   const file = f.get("file");
   if (!(file instanceof File) || file.size === 0) return null;
   if (file.size > MAX_MATERIAL_BYTES) throw new AdminInputError("PDF files must be 25 MB or smaller.");

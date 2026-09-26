@@ -4,13 +4,13 @@ import { Input, Select, Textarea } from "@/components/ui/form";
 
 type M = { title: string; description: string | null; courseId: string | null; topicId: string | null; accessTier: string; isPublished: boolean; storageKey: string | null };
 
-export function MaterialForm({ action, m, courses, topics, defaultCourseId }: {
-  action: (f: FormData) => Promise<void>; m?: M; courses: { id: string; title: string }[]; topics: { id: string; name: string }[]; defaultCourseId?: string;
+export function MaterialForm({ action, m, courses, topics, defaultCourseId, direct }: {
+  action: (f: FormData) => Promise<void>; m?: M; direct?: boolean; courses: { id: string; title: string }[]; topics: { id: string; name: string }[]; defaultCourseId?: string;
 }) {
   return (
     <form action={action} className="card space-y-4 p-5">
       <L label={m ? "Replace PDF (optional)" : "PDF file"} htmlFor="file" hint="PDF only, up to 25 MB. Files with scripts, launch actions or embedded attachments are rejected.">
-        <PdfInput required={!m} />
+        <PdfInput required={!m} direct={direct} />
       </L>
       <L label="Title" htmlFor="title"><Input id="title" name="title" defaultValue={m?.title} required minLength={3} maxLength={160} /></L>
       <L label="Description" htmlFor="description" hint="Shown to learners next to the download."><Textarea id="description" name="description" defaultValue={m?.description ?? ""} maxLength={1000} className="min-h-[80px]" /></L>

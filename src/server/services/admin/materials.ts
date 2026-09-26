@@ -7,7 +7,8 @@ import { NotFoundError } from "../courses";
 import { AdminInputError } from "./content";
 
 type Actor = { id: string; role: Role };
-export type UploadedFile = { name: string; type: string; bytes: Uint8Array };
+/** A PDF from the form, or one the browser already uploaded to Blob storage (`storageKey` set). */
+export type UploadedFile = { name: string; type: string; bytes: Uint8Array; storageKey?: string };
 
 const opt = (v: unknown) => (v === undefined || v === null || (typeof v === "string" && v.trim() === "") ? null : v);
 
@@ -30,11 +31,16 @@ async function checkRefs(d: z.infer<typeof materialSchema>) {
 }
 
 async function storePdf(file: UploadedFile) {
+  if (file.storageKey && (await db.courseResource.findUnique({ where: { storageKey: file.storageKey }, select: { id: true } }))) {
+    throw new AdminInputError("That uploaded file is already attached to another material. Choose the file again.");
+  }
   try {
     const { safeName, pageCount } = await validatePdf(file.name, file.type, file.bytes);
-    const storageKey = await putObject(file.bytes, "pdf");
+    const storageKey = file.storageKey ?? (await putObject(file.bytes, "pdf", "materials"));
     return { filename: safeName, mimeType: "application/pdf", storageKey, sizeBytes: file.bytes.byteLength, pageCount, content: "" };
   } catch (e) {
+    // A rejected direct upload must not linger in storage.
+    if (file.storageKey) await deleteObject(file.storageKey).catch(() => {});
     if (e instanceof UploadError) throw new AdminInputError(e.message);
     throw e;
   }

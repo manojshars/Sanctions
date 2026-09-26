@@ -75,6 +75,7 @@ via YouTube oEmbed.
 - [docs/SECURITY.md](docs/SECURITY.md) — auth, RBAC, entitlements, tenant isolation, privacy
 - [docs/SPACED_REPETITION.md](docs/SPACED_REPETITION.md) — scheduling algorithm and scoring rules
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — environment variables, external services, deployment
+- [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md) — step-by-step Vercel + Neon + Blob deployment
 - [docs/STATUS.md](docs/STATUS.md) — completed features, known limitations, remaining configuration
 
 ## Disclaimers built into the product

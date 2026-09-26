@@ -20,7 +20,7 @@
 
 ## Test results (latest run)
 - TypeScript: clean · ESLint: clean · Production build: succeeds
-- Vitest: **99 passed** (49 unit, 50 integration against PostgreSQL)
+- Vitest: **104 passed** (53 unit, 51 integration against PostgreSQL)
 - Playwright: **47 passed** (29 public pages, header links, auth redirects, search, certificate verify, theme, learner journeys, admin journeys incl. PDF material upload/download/delete, support staff reply, mobile layout on 23 pages)
 
 ## Not verified / requires configuration
@@ -28,7 +28,8 @@
 - **Email delivery** — Resend adapter implemented; not tested (no key). Emails are logged to `EmailLog`.
 - **YouTube** — the build environment's network policy blocked youtube.com, so no video IDs could be verified and **no videos are seeded**. oEmbed validation is unit-tested with mocked responses.
 - **Regulatory links** — official URLs were written from editorial knowledge; outbound access to regulator sites was blocked, so links were **not live-checked**. "Last reviewed" dates reflect the seed date. Verify before launch.
-- File storage is local-disk; configure object storage for production.
+- File storage: a Vercel Blob driver is implemented and unit-tested with a mocked Blob API, but it has **not** been run against a real Blob store. Local disk is tested end-to-end.
+- **Vercel deployment:** the build script was verified locally by simulating a production build against a fresh database (migrations, then the seed with password enforcement and no demo users). The app has not been deployed to Vercel from this environment, because that needs the owner's Vercel account.
 - Rate limiting is per-instance memory.
 - Legal pages are templates requiring counsel review.
 

@@ -79,7 +79,8 @@ export function shuffle<T>(arr: readonly T[], rng: () => number = Math.random): 
 }
 
 export function appUrl(path = ""): string {
-  const base = (process.env.APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "";
+  const base = (process.env.APP_URL || vercel || "http://localhost:3000").replace(/\/$/, "");
   return `${base}${path}`;
 }
 
