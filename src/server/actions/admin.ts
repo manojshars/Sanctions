@@ -15,6 +15,8 @@ import {
   adminEnroll, createCoupon, grantMembership, grantOrgMembership, reviewFeeAssistance, revokeMembership, setUserRole, setUserStatus, toggleCoupon,
   updatePackage, updatePlan, updateSetting,
 } from "@/server/services/admin/users";
+import { createMaterial, deleteMaterial, updateMaterial, type UploadedFile } from "@/server/services/admin/materials";
+import { MAX_MATERIAL_BYTES } from "@/lib/storage";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 
@@ -212,4 +214,29 @@ export async function inquiryStatusAction(id: string, status: "IN_PROGRESS" | "C
 }
 export async function reviewModerationAction(id: string, status: "PUBLISHED" | "ARCHIVED") {
   await run("content:publish", "/admin/courses", async (a) => { await db.courseReview.update({ where: { id }, data: { status } }); await audit(a.id, "review.moderate", "CourseReview", id, { status }); });
+}
+
+// ───── Training materials (PDF uploads) ─────
+async function pdfFrom(f: FormData): Promise<UploadedFile | null> {
+  const file = f.get("file");
+  if (!(file instanceof File) || file.size === 0) return null;
+  if (file.size > MAX_MATERIAL_BYTES) throw new AdminInputError("PDF files must be 25 MB or smaller.");
+  return { name: file.name, type: file.type, bytes: new Uint8Array(await file.arrayBuffer()) };
+}
+const materialFrom = (f: FormData) => ({
+  title: s(f, "title"), description: s(f, "description"), courseId: s(f, "courseId"), topicId: s(f, "topicId"),
+  accessTier: s(f, "accessTier"), isPublished: b(f, "isPublished"),
+});
+export async function createMaterialAction(f: FormData) {
+  const back = f.get("returnTo") === "course" && s(f, "courseId") ? `/admin/materials/new?course=${encodeURIComponent(s(f, "courseId"))}` : "/admin/materials/new";
+  await run("content:manage", back, async (a) => {
+    const m = await createMaterial(a, materialFrom(f), await pdfFrom(f));
+    return `/admin/materials/${m.id}`;
+  });
+}
+export async function updateMaterialAction(id: string, f: FormData) {
+  await run("content:manage", `/admin/materials/${id}`, async (a) => { await updateMaterial(a, id, materialFrom(f), await pdfFrom(f)); });
+}
+export async function deleteMaterialAction(id: string) {
+  await run("content:manage", `/admin/materials/${id}`, async (a) => { await deleteMaterial(a, id); return "/admin/materials"; });
 }

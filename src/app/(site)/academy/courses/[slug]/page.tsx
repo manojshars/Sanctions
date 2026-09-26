@@ -13,7 +13,7 @@ import { Alert, Progress } from "@/components/ui/feedback";
 import { CourseCard } from "@/components/courses/course-card";
 import { EnrollButton, StartFinalButton } from "@/components/courses/course-actions";
 import { BookmarkButton } from "@/components/common/bookmark-button";
-import { formatDuration, appUrl, titleCase } from "@/lib/utils";
+import { formatBytes, formatDuration, appUrl, titleCase } from "@/lib/utils";
 import { TopicIcon } from "@/lib/topic-icons";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -183,7 +183,7 @@ export default async function CourseDetailPage({ params }: Params) {
               <ul className="mt-3 space-y-2">
                 {course.resources.map((r) => (
                   <li key={r.id} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="flex items-center gap-2"><Download className="h-4 w-4 text-muted" />{r.title}</span>
+                    <span className="flex items-start gap-2"><Download className="mt-0.5 h-4 w-4 shrink-0 text-muted" /><span>{r.title}{r.mimeType === "application/pdf" && <span className="block text-xs text-muted">PDF{r.sizeBytes ? ` · ${formatBytes(r.sizeBytes)}` : ""}{r.pageCount ? ` · ${r.pageCount} pages` : ""}</span>}</span></span>
                     {enrollment ? <a href={`/academy/courses/${course.slug}/resources/${r.id}`} className="font-semibold text-brand hover:underline">Download</a> : <Badge tone="outline">Enrol to download</Badge>}
                   </li>
                 ))}

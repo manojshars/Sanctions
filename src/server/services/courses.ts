@@ -80,7 +80,7 @@ export async function getCourseDetail(slug: string) {
       topic: true,
       objectives: { orderBy: { order: "asc" } },
       modules: { orderBy: { order: "asc" }, include: { lessons: { orderBy: { order: "asc" }, select: { id: true, slug: true, title: true, type: true, durationMinutes: true } } } },
-      resources: { select: { id: true, title: true, description: true, filename: true, accessTier: true } },
+      resources: { where: { isPublished: true }, orderBy: { title: "asc" }, select: { id: true, title: true, description: true, filename: true, mimeType: true, sizeBytes: true, pageCount: true, accessTier: true } },
       related: { where: { status: "PUBLISHED" }, include: { topic: true }, take: 3 },
       assessments: { where: { type: "FINAL" }, select: { id: true, questionCount: true, passingScore: true, timeLimitMinutes: true } },
       reviews: { where: { status: "PUBLISHED" }, include: { user: { select: { name: true } } }, take: 5, orderBy: { createdAt: "desc" } },

@@ -33,6 +33,9 @@ which take an explicit actor and enforce permissions. This keeps logic testable 
   assessments. Questions are selected server-side (tier-filtered, randomised), clients receive a
   sanitised view with no answer keys, answers autosave, timers are enforced server-side (30 s grace;
   late writes auto-submit), and grading uses `lib/scoring.ts`.
+- **Training materials** — `services/admin/materials.ts` validates and stores PDFs (`lib/storage.ts`) as
+  `CourseResource` rows attached to a course or standalone with a topic; `services/resources.ts` decides
+  who may download (`/academy/courses/[slug]/resources/[id]`, `/resources/[id]/download`).
 - **Flashcards** — `services/flashcards.ts` + `lib/srs.ts` (see SPACED_REPETITION.md).
 - **Payments** — `services/payments.ts`: pending `Payment` → Stripe Checkout (or dev simulation) →
   idempotent `fulfillPayment` creates the `Membership`. Entitlements are always recomputed from DB.
@@ -60,7 +63,7 @@ which take an explicit actor and enforce permissions. This keeps logic testable 
 | 27–29 | Support, ticket, help article | `/support` (+`/new`, `/tickets`), `/support/tickets/[number]`, `/support/help/[slug]` |
 | 30–33 | Pricing, packages, corporate, corporate dashboard | `/pricing`, `/pricing/packages`, `/corporate`, `/corporate/dashboard` |
 | 34–38 | About, login, register, profile, settings | `/about`, `/login`, `/register`, `/profile`, `/settings` (+`/billing`) |
-| 39–47 | Admin dashboard & management | `/admin`, `/admin/courses`, `/admin/questions`, `/admin/flashcards`, `/admin/videos`, `/admin/case-studies`, `/admin/users`, `/admin/support`, `/admin/memberships` (+ `/admin/content`, `/admin/inquiries`, `/admin/audit`) |
+| 39–47 | Admin dashboard & management | `/admin`, `/admin/courses`, `/admin/questions`, `/admin/flashcards`, `/admin/videos`, `/admin/case-studies`, `/admin/users`, `/admin/support`, `/admin/memberships` (+ `/admin/content`, `/admin/materials`, `/admin/inquiries`, `/admin/audit`) |
 | 48–50 | Privacy, terms, contact | `/privacy`, `/terms`, `/contact` |
 
 Also: `/search`, `/resources`, `/notifications`, `/checkout`, `/corporate/join`, password reset & email verification.

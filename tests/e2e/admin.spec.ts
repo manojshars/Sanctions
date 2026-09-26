@@ -81,3 +81,46 @@ test("support staff can reply to tickets", async ({ page, browser }) => {
   await expect(page.getByText(/Cards you find difficult come back sooner/)).toBeVisible();
   await expect(page.getByText("Awaiting your response")).toBeVisible();
 });
+
+test("admin: upload a PDF training material, download it from the library, then delete it", async ({ page }) => {
+  const { PDFDocument } = await import("pdf-lib");
+  const doc = await PDFDocument.create();
+  doc.addPage().drawText("E2E training material");
+  const buffer = Buffer.from(await doc.save());
+  const title = `E2E material ${Date.now()}`;
+
+  await login(page, ADMIN.email, ADMIN.password, "/admin/materials");
+  await page.getByRole("link", { name: "Upload PDF" }).click();
+  await page.locator("#file").setInputFiles({ name: "e2e-guide.pdf", mimeType: "application/pdf", buffer });
+  await expect(page.getByText(/e2e-guide\.pdf · /)).toBeVisible();
+  await page.getByLabel("Title").fill(title);
+  await page.getByLabel("Description").fill("Uploaded by the end-to-end test.");
+  await page.getByLabel("Topic (standalone items)").selectOption({ label: "Sanctions Compliance" });
+  await page.getByLabel("Access").selectOption("FREE");
+  await page.getByRole("button", { name: "Upload material" }).click();
+  await expect(page.getByRole("heading", { name: title })).toBeVisible();
+  await expect(page.getByText("Changes saved.")).toBeVisible();
+  await expect(page.getByText(/PDF · .* · 1 pages/)).toBeVisible();
+
+  await page.goto("/resources");
+  const card = page.locator("article", { hasText: title });
+  await expect(card).toContainText("PDF");
+  const [download] = await Promise.all([page.waitForEvent("download"), card.getByRole("link", { name: "Download" }).click()]);
+  expect(download.suggestedFilename()).toBe("e2e-guide.pdf");
+
+  await page.goto("/admin/materials");
+  await page.getByRole("link", { name: title }).click();
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Delete material" }).click();
+  await expect(page).toHaveURL(/\/admin\/materials\?saved=1/);
+  await expect(page.getByRole("link", { name: title })).toHaveCount(0);
+});
+
+test("admin: non-PDF uploads are rejected", async ({ page }) => {
+  await login(page, ADMIN.email, ADMIN.password, "/admin/materials/new");
+  await page.locator("#file").setInputFiles({ name: "notes.pdf", mimeType: "application/pdf", buffer: Buffer.from("not really a pdf") });
+  await page.getByLabel("Title").fill("Fake PDF");
+  await page.getByLabel("Topic (standalone items)").selectOption({ label: "Sanctions Compliance" });
+  await page.getByRole("button", { name: "Upload material" }).click();
+  await expect(page.getByText("The file is not a valid PDF.")).toBeVisible();
+});

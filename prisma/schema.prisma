@@ -385,6 +385,7 @@ model Topic {
   articles      Article[]
   regulations   RegulatoryReference[]
   caseStudies   CaseStudy[]
+  resources     CourseResource[]
 }
 
 // ─────────────────────────── Courses ───────────────────────────
@@ -475,18 +476,31 @@ model Lesson {
   @@index([moduleId, order])
 }
 
+/// Downloadable training material. Either attached to a course (courseId) or a standalone
+/// library item for a topic (topicId). Content is inline text (seeded resources) or an
+/// uploaded PDF in file storage (storageKey).
 model CourseResource {
-  id          String     @id @default(cuid())
-  courseId    String
-  title       String
-  description String?
-  filename    String
-  mimeType    String     @default("text/markdown")
-  content     String
-  accessTier  AccessTier @default(PREMIUM)
-  course      Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  id           String     @id @default(cuid())
+  courseId     String?
+  topicId      String?
+  title        String
+  description  String?
+  filename     String
+  mimeType     String     @default("text/markdown")
+  content      String     @default("")
+  storageKey   String?    @unique
+  sizeBytes    Int?
+  pageCount    Int?
+  accessTier   AccessTier @default(PREMIUM)
+  isPublished  Boolean    @default(true)
+  uploadedById String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @default(now()) @updatedAt
+  course       Course?    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  topic        Topic?     @relation(fields: [topicId], references: [id], onDelete: SetNull)
 
   @@index([courseId])
+  @@index([topicId])
 }
 
 model Enrollment {

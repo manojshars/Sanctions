@@ -9,7 +9,7 @@
 | `APP_URL` | ✅ | Public base URL (emails, certificates, sitemap). |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | for payments | Without them, production checkout is **disabled** (dev mode simulates payments only when `NODE_ENV≠production`). Webhook: `POST /api/stripe/webhook` with events `checkout.session.completed`, `customer.subscription.deleted`, `invoice.payment_failed`. Optionally set Stripe price IDs per plan in Admin → Memberships. |
 | `EMAIL_PROVIDER`, `RESEND_API_KEY`, `EMAIL_FROM` | for email | Default `log` records emails in `EmailLog` only. `resend` sends via Resend. |
-| `STORAGE_DRIVER` | – | `local` writes to `./storage`. On ephemeral/multi-instance hosts implement S3/Supabase Storage in `src/lib/storage.ts` (same `putObject`/`getObject` interface). |
+| `STORAGE_DRIVER` | – | `local` writes to `./storage` (support attachments and training-material PDFs up to 25 MB; Server Action body limit is 30 MB in `next.config.ts` — raise your proxy/platform request limit to match). On ephemeral/multi-instance hosts implement S3/Supabase Storage in `src/lib/storage.ts` (same `putObject`/`getObject` interface). |
 | `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `SEED_DEMO_USERS` | seed | Set `SEED_DEMO_USERS=false` in production. |
 | `RATE_LIMIT_MULTIPLIER` | – | Keep `1` in production. |
 

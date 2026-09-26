@@ -34,6 +34,10 @@
 - Markdown is rendered with `marked` and sanitised with DOMPurify.
 - Uploads: allow-list (PNG/JPG/PDF/TXT), 5 MB, magic-byte checks, random storage keys, served with
   `Content-Disposition: attachment` + `nosniff`, access-checked (internal notes hidden from requesters).
+- Training-material PDFs (staff with `content:manage` only): `.pdf` only, 25 MB, `%PDF-` signature, must
+  parse with pdf-lib, and are rejected if they contain `/JavaScript`, `/JS`, `/Launch`, `/EmbeddedFile` or
+  `/RichMedia`. Learner downloads re-check publication, enrolment and the downloads entitlement on every
+  request; replaced and deleted files are removed from storage; every change is audited.
 - CSV exports neutralise formula injection. Security headers set in `next.config.ts`.
 - Server Actions include Next.js origin checks (CSRF protection).
 

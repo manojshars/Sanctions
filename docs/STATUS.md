@@ -15,13 +15,13 @@
 - Support: help center, FAQs, tickets with attachments, statuses, notifications; staff assignment, priority, internal notes, metrics.
 - Commerce: plans, packages, comparison, checkout (Stripe / dev simulation), coupons, fee assistance, billing history, invoices, cancellation.
 - Corporate: org creation, invitations, assignments with deadlines, progress & assessment reporting, CSV export, workshop requests, tenant isolation.
-- Admin: analytics, course/module/lesson editor, question editor with versions + review workflow + CSV import + duplicate detection, flashcards, videos, case studies, knowledge & help content, users/roles/status/memberships/enrolments, support desk, memberships/packages/coupons/fee assistance, inquiries, audit log.
+- Admin: analytics, course/module/lesson editor, question editor with versions + review workflow + CSV import + duplicate detection, flashcards, videos, case studies, knowledge & help content, training-material PDF uploads (course materials and standalone library items: upload, replace, publish/hide, delete), users/roles/status/memberships/enrolments, support desk, memberships/packages/coupons/fee assistance, inquiries, audit log.
 - SEO: metadata, Open Graph, sitemap, robots, structured data; private routes noindexed.
 
 ## Test results (latest run)
 - TypeScript: clean · ESLint: clean · Production build: succeeds
-- Vitest: **93 passed** (49 unit, 44 integration against PostgreSQL)
-- Playwright: **45 passed** (29 public pages, header links, auth redirects, search, certificate verify, theme, learner journeys, admin journeys, support staff reply, mobile layout on 23 pages)
+- Vitest: **99 passed** (49 unit, 50 integration against PostgreSQL)
+- Playwright: **47 passed** (29 public pages, header links, auth redirects, search, certificate verify, theme, learner journeys, admin journeys incl. PDF material upload/download/delete, support staff reply, mobile layout on 23 pages)
 
 ## Not verified / requires configuration
 - **Stripe** — code path implemented; not exercised against Stripe (no keys). Dev simulation tested end-to-end.
@@ -34,6 +34,8 @@
 
 ## Known limitations / next steps
 - Content depth: many courses have 1–3 lessons; question bank has 136 items (targets are much larger).
-- Admin forms reload defaults after a validation error (input not preserved).
+- Admin forms reload defaults after a validation error (input not preserved); on the material form the chosen PDF must be re-selected.
+- Question papers can be imported as CSV only; PDF question papers are stored as downloadable materials, not parsed into the question bank.
+- The PDF active-content check scans uncompressed PDF syntax; markers inside compressed object streams are not detected (downloads are always served as attachments with `nosniff`).
 - Postgres RLS not enabled (app-layer authorization only; see SECURITY.md).
 - No WCAG audit tooling run beyond semantic markup, focus states, labels and contrast choices.

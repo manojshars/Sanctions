@@ -65,7 +65,8 @@ async function seedCourses(topicIds: Record<string, string>) {
         await db.lesson.upsert({ where: { moduleId_slug: { moduleId: mod.id, slug } }, update: lessonData, create: { moduleId: mod.id, slug, ...lessonData } });
       }
     }
-    await db.courseResource.deleteMany({ where: { courseId: course.id } });
+    // Replace seeded resources only; materials uploaded by staff (uploadedById set) are kept.
+    await db.courseResource.deleteMany({ where: { courseId: course.id, uploadedById: null } });
     if (c.resources?.length) {
       await db.courseResource.createMany({
         data: c.resources.map((r) => ({ courseId: course.id, title: r.title, filename: r.filename, description: r.description ?? null, content: r.content, accessTier: r.tier ?? "PREMIUM" })),

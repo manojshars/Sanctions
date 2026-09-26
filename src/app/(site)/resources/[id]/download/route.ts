@@ -3,16 +3,17 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { AccessError, NotFoundError } from "@/server/services/courses";
 import { downloadResource, fileResponseHeaders } from "@/server/services/resources";
 
-export async function GET(_req: Request, { params }: { params: Promise<{ slug: string; resourceId: string }> }) {
-  const { slug, resourceId } = await params;
+/** Download for any published material (course or standalone library item). */
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  if (!user) return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent("/resources")}`, req.url));
   try {
-    const f = await downloadResource(user, resourceId, slug);
+    const f = await downloadResource(user, id);
     return new NextResponse(new Uint8Array(f.body), { headers: fileResponseHeaders(f) });
   } catch (e) {
     if (e instanceof NotFoundError) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    if (e instanceof AccessError) return NextResponse.json({ error: "Not permitted" }, { status: 403 });
+    if (e instanceof AccessError) return NextResponse.redirect(new URL("/pricing", req.url), 303);
     throw e;
   }
 }

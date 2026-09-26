@@ -6,6 +6,7 @@ import { AdminHeader, Flash, ActionButton, L } from "@/components/admin/ui";
 import { CourseForm } from "@/components/admin/course-form";
 import { StatusBadge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/form";
+import { formatBytes } from "@/lib/utils";
 import { courseStatusAction, deleteModuleAction, saveCourseAction, saveModuleAction } from "@/server/actions/admin";
 
 export const metadata = { title: "Edit course" };
@@ -15,7 +16,7 @@ export default async function EditCourse({ params, searchParams }: { params: Pro
   const { id } = await params;
   const sp = await searchParams;
   const [course, topics] = await Promise.all([
-    db.course.findUnique({ where: { id }, include: { objectives: { orderBy: { order: "asc" } }, modules: { orderBy: { order: "asc" }, include: { lessons: { orderBy: { order: "asc" } } } }, _count: { select: { questions: true, enrollments: true } } } }),
+    db.course.findUnique({ where: { id }, include: { objectives: { orderBy: { order: "asc" } }, modules: { orderBy: { order: "asc" }, include: { lessons: { orderBy: { order: "asc" } } } }, resources: { orderBy: { title: "asc" }, select: { id: true, title: true, storageKey: true, sizeBytes: true, isPublished: true, accessTier: true } }, _count: { select: { questions: true, enrollments: true } } } }),
     db.topic.findMany({ orderBy: { order: "asc" } }),
   ]);
   if (!course) notFound();
@@ -48,6 +49,13 @@ export default async function EditCourse({ params, searchParams }: { params: Pro
               <input type="hidden" name="order" value={course.modules.length} />
               <button className="h-9 rounded-lg bg-navy px-3 text-sm text-white dark:bg-gold-400 dark:text-navy">Add module</button>
             </form>
+          </section>
+          <section className="card p-5">
+            <h2 className="font-semibold">Training materials</h2>
+            {course.resources.length ? (
+              <ul className="mt-3 space-y-1 text-sm">{course.resources.map((r) => <li key={r.id} className="flex flex-wrap items-center gap-2"><Link href={`/admin/materials/${r.id}`} className="text-brand hover:underline">{r.title}</Link><span className="text-xs text-muted">{r.storageKey ? `PDF · ${formatBytes(r.sizeBytes)}` : "text"} · {r.accessTier.toLowerCase()}{r.isPublished ? "" : " · hidden"}</span></li>)}</ul>
+            ) : <p className="mt-2 text-sm text-muted">No downloadable materials yet.</p>}
+            <Link href={`/admin/materials/new?course=${course.id}`} className="mt-3 inline-block text-sm font-semibold text-brand">+ Upload PDF</Link>
           </section>
         </div>
       </div>

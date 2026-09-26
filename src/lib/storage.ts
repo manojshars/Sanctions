@@ -43,3 +43,43 @@ export async function getObject(key: string): Promise<Buffer> {
   if (!full.startsWith(ROOT + path.sep)) throw new UploadError("Invalid key");
   return fs.readFile(full);
 }
+
+export async function deleteObject(key: string): Promise<void> {
+  const full = path.resolve(ROOT, key);
+  if (!full.startsWith(ROOT + path.sep)) throw new UploadError("Invalid key");
+  await fs.rm(full, { force: true });
+}
+
+// ───── Training material PDFs ─────
+
+export const MAX_MATERIAL_BYTES = 25 * 1024 * 1024;
+
+/** PDF name-tree entries that make a document run code or carry hidden files. */
+const ACTIVE_PDF_MARKERS = ["/JavaScript", "/JS", "/Launch", "/EmbeddedFile", "/RichMedia"];
+
+/**
+ * Validates an uploaded training-material PDF: extension/type, size, `%PDF-` signature, that it
+ * parses as a PDF, and that it contains no scripts, launch actions or embedded files.
+ * Returns a safe download filename and the page count.
+ */
+export async function validatePdf(name: string, type: string, bytes: Uint8Array): Promise<{ safeName: string; pageCount: number }> {
+  if (bytes.byteLength === 0) throw new UploadError("The file is empty.");
+  if (bytes.byteLength > MAX_MATERIAL_BYTES) throw new UploadError("PDF files must be 25 MB or smaller.");
+  if (!/\.pdf$/i.test(name) || (type && type !== "application/pdf" && type !== "application/octet-stream")) throw new UploadError("Only PDF files can be uploaded.");
+  const head = Buffer.from(bytes.subarray(0, 1024)).toString("latin1");
+  if (!head.includes("%PDF-")) throw new UploadError("The file is not a valid PDF.");
+  const text = Buffer.from(bytes).toString("latin1");
+  const marker = ACTIVE_PDF_MARKERS.find((m) => new RegExp(`${m.replace("/", "\\/")}(?![A-Za-z])`).test(text));
+  if (marker) throw new UploadError(`PDFs containing scripts, launch actions or embedded files are not accepted (found ${marker}). Re-export the document as a plain PDF.`);
+  let pageCount: number;
+  try {
+    const { PDFDocument } = await import("pdf-lib");
+    const doc = await PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false });
+    pageCount = doc.getPageCount();
+  } catch {
+    throw new UploadError("The PDF could not be read. It may be damaged; re-export it and try again.");
+  }
+  if (pageCount < 1) throw new UploadError("The PDF has no pages.");
+  const base = name.replace(/\.pdf$/i, "").replace(/[^\w.\- ]+/g, "_").trim().slice(0, 110) || "material";
+  return { safeName: `${base}.pdf`, pageCount };
+}

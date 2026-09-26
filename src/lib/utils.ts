@@ -82,3 +82,10 @@ export function appUrl(path = ""): string {
   const base = (process.env.APP_URL || "http://localhost:3000").replace(/\/$/, "");
   return `${base}${path}`;
 }
+
+export function formatBytes(n: number | null | undefined): string {
+  if (!n) return "";
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
+  return `${(n / 1024 / 1024).toFixed(1)} MB`;
+}

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, BookOpen, ClipboardList, CreditCard, FileSearch, Inbox, Layers, LifeBuoy, Library, PlayCircle, ScrollText, Users } from "lucide-react";
+import { BarChart3, BookOpen, ClipboardList, CreditCard, FileSearch, FileText, Inbox, Layers, LifeBuoy, Library, PlayCircle, ScrollText, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ITEMS = [
@@ -10,6 +10,7 @@ const ITEMS = [
   { href: "/admin/questions", label: "Questions", icon: ClipboardList, perm: "content" },
   { href: "/admin/flashcards", label: "Flashcards", icon: Layers, perm: "content" },
   { href: "/admin/videos", label: "Videos", icon: PlayCircle, perm: "content" },
+  { href: "/admin/materials", label: "Training materials", icon: FileText, perm: "content" },
   { href: "/admin/case-studies", label: "Case studies", icon: FileSearch, perm: "content" },
   { href: "/admin/content", label: "Knowledge & help", icon: Library, perm: "content" },
   { href: "/admin/users", label: "Users", icon: Users, perm: "users" },
